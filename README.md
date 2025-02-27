@@ -1,6 +1,6 @@
 # Hash Analyzer and Cracker
 
-This project is a Python-based tool for analyzing and cracking hashes. It supports hash detection, hash type identification, and both wordlist-based and brute-force cracking methods. The tool is capable of analyzing large hash lists, and it allows you to apply different strategies to crack each hash.
+This project is a Python-based tool for analyzing and cracking hashes for a Forage job simulation. It supports hash detection, hash type identification, and both wordlist-based and brute-force cracking methods. The tool is capable of analyzing large hash lists, and it allows you to apply different strategies to crack each hash.
 
 ## Features
 - **Hash Type Detection**: Automatically detects hash types based on length and pattern.
