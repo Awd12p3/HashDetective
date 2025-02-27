@@ -16,3 +16,6 @@ Ensure that Python 3.x is installed on your system. Clone the repository to your
 ```bash
 git clone https://github.com/yourusername/hash-analyzer.git
 cd hash-analyzer
+
+##Pending
+Rainbow
