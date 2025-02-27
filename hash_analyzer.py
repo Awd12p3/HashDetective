@@ -8,6 +8,24 @@ from hash_types import detect_hash_type
 from bruteforce import try_wordlist, bruteforce_attack
 from utils import format_results, validate_hash
 
+def read_hash_list(file_path):
+    """Read hash list from a file and return a dictionary of username:hash pairs"""
+    hash_dict = {}
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        username, hash_value = line.split(':')
+                        hash_dict[username] = hash_value
+                    except ValueError:
+                        print(f"Skipping invalid line: {line}")
+        return hash_dict
+    except FileNotFoundError:
+        print(f"Error: File {file_path} not found")
+        sys.exit(1)
+
 def process_hash_list(hash_dict, wordlist_path, use_bruteforce=False, max_length=8):
     """Process a dictionary of username:hash pairs"""
     results = []
@@ -80,8 +98,7 @@ def display_results(results):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Hash Analyzer and Cracker')
-    parser.add_argument('--hash-list', type=str, help='Process a list of username:hash pairs')
-    parser.add_argument('--hash', help='Single hash string to analyze')
+    parser.add_argument('--hash-list', type=str, help='File containing username:hash pairs')
     parser.add_argument('--crack', action='store_true', help='Attempt to crack the hash')
     parser.add_argument('--wordlist', default='wordlists/common.txt', 
                        help='Path to wordlist file for cracking')
@@ -89,18 +106,16 @@ def parse_arguments():
                        help='Use bruteforce attack (warning: slow)')
     parser.add_argument('--max-length', type=int, default=8,
                        help='Maximum length for bruteforce attempts')
+    parser.add_argument('--num-workers', type=int, default=4, 
+                       help='Number of workers for bruteforce parallelization')
     return parser.parse_args()
 
 def main():
     args = parse_arguments()
 
     if args.hash_list:
-        # Process hash list from the command line
-        hash_dict = {}
-        pairs = args.hash_list.split(',')
-        for pair in pairs:
-            username, hash_value = pair.split(':')
-            hash_dict[username] = hash_value
+        # Process hash list from the file
+        hash_dict = read_hash_list(args.hash_list)
 
         results = process_hash_list(
             hash_dict,
@@ -110,40 +125,8 @@ def main():
         )
         display_results(results)
 
-    elif args.hash:
-        # Process single hash (original functionality)
-        is_valid, error_message = validate_hash(args.hash)
-        if not is_valid:
-            print(f"Error: {error_message}")
-            sys.exit(1)
-
-        possible_types = detect_hash_type(args.hash)
-        print(format_results(args.hash, possible_types))
-
-        if args.crack and possible_types:
-            print("\n=== Starting Crack Attempt ===")
-            for hash_type in possible_types:
-                print(f"\nTrying {hash_type['type']}...")
-
-                print(f"Using wordlist: {args.wordlist}")
-                result = try_wordlist(args.hash, hash_type['type'], args.wordlist)
-
-                if result:
-                    print(f"\nHash cracked! Original text: {result}")
-                    sys.exit(0)
-
-                if args.bruteforce:
-                    print("\nStarting bruteforce attack...")
-                    result = bruteforce_attack(args.hash, hash_type['type'], args.max_length)
-
-                    if result:
-                        print(f"\nHash cracked! Original text: {result}")
-                        sys.exit(0)
-
-            print("\nUnable to crack hash with current methods")
-
     else:
-        print("Error: Please provide either --hash or --hash-list argument")
+        print("Error: Please provide a hash list file using the --hash-list argument")
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -28,39 +28,43 @@ def try_wordlist(hash_string, hash_type, wordlist_path):
         with open(wordlist_path, 'r', encoding='utf-8') as f:
             words = f.readlines()
             total_words = len(words)
-            
+
             for idx, word in enumerate(words):
                 word = word.strip()
                 if generate_hash(word, hash_type) == hash_string.lower():
                     return word
-                
+
                 if idx % 1000 == 0:
                     print_progress(idx, total_words, prefix='Progress:', suffix='Complete')
-                    
+
         return None
     except FileNotFoundError:
         print(f"Error: Wordlist file {wordlist_path} not found")
         return None
 
-def bruteforce_attack(hash_string, hash_type, max_length=8, char_set=string.ascii_lowercase + string.digits):
+def bruteforce_attack(hash_string, hash_type, max_length=8, char_set=None):
     """
     Perform a bruteforce attack on the hash
     """
+    if char_set is None:
+        # Enhanced character set including special characters
+        char_set = string.ascii_lowercase + string.digits + string.ascii_uppercase + '@#$!-_'
+
     start_time = time.time()
     total_combinations = sum(len(char_set) ** i for i in range(1, max_length + 1))
     current_count = 0
-    
+
     for length in range(1, max_length + 1):
         for guess in product(char_set, repeat=length):
             current_count += 1
             guess_str = ''.join(guess)
-            
+
             if generate_hash(guess_str, hash_type) == hash_string.lower():
                 return guess_str
-            
+
             if current_count % 10000 == 0:
                 print_progress(current_count, total_combinations, 
                              prefix='Bruteforce Progress:', 
                              suffix=f'Time: {int(time.time() - start_time)}s')
-    
+
     return None
